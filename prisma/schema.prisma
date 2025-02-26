@@ -8,23 +8,59 @@ datasource db {
 }
 
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
-  password String
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 }
 
 model Client {
-  id       Int    @id @default(autoincrement())
-  name     String
-  email    String @unique
+  id        Int      @id @default(autoincrement())
+  name      String
+  rfc       String   @unique
+  email     String   @unique
+  phone     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   invoices Invoice[]
 }
 
 model Invoice {
-  id        Int    @id @default(autoincrement())
-  amount    Float
-  date      DateTime @default(now())
+  id        String   @id @default(uuid())
   clientId  Int
-  client    Client @relation(fields: [clientId], references: [id])
+  amount    Float // MONTO TOTAL
+  status    String   @default("pending") // PENDING / PAID /CANCELLED
+  dueDate   DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  client   Client           @relation(fields: [clientId], references: [id])
+  payments InvoicePayment[]
+  details  InvoiceDetail[]
+}
+
+model InvoiceDetail {
+  id          String  @id @default(uuid())
+  invoiceId   String
+  description String
+  quantity    Int
+  unitPrice   Decimal
+  subtotal    Decimal // quantity * unitPrice
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+}
+
+model InvoicePayment {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  amount      Decimal // PAGADO
+  paymentDate DateTime @default(now())
+  method      String
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
 }
